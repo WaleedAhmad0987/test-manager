@@ -6,8 +6,11 @@
   "scripts": {
     "build": "tsc",
     "start": "ts-node src/server.ts",
+    "test": "npm run test:server && npm run test:e2e && npm run test:load",
+    "test:server": "ts-node scripts/start-server.ts",
     "test:e2e": "npx playwright test",
-    "test:load": "k6 run tests/k6/bugs.js"
+    "test:load": "powershell -ExecutionPolicy Bypass -File .\\scripts\\install-k6.ps1 && .\\tools\\k6\\k6-v0.46.0-windows-amd64\\k6.exe run tests\\k6\\bugs.js",
+    "postinstall": "powershell -ExecutionPolicy Bypass -File .\\scripts\\install-k6.ps1"
   },
   "author": "",
   "license": "ISC",
