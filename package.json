@@ -6,6 +6,8 @@
   "scripts": {
     "build": "tsc",
     "start": "ts-node src/server.ts",
+    "test": "npm run test:server && npm run test:e2e && npm run test:load",
+    "test:server": "ts-node scripts/start-server.ts",
     "test:e2e": "npx playwright test",
     "test:load": "k6 run tests/k6/bugs.js"
   },
