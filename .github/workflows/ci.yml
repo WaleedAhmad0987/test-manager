@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, initial-commit ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build the app
+      run: npm run build
+
+    - name: Start the app
+      run: npm start &
+      env:
+        PORT: 3000
+
+    - name: Wait for app
+      run: |
+        timeout=30
+        while ! curl -s http://localhost:3000/ | grep -q "OK"; do
+          if [ $timeout -le 0 ]; then
+            echo "Timeout waiting for app to start"
+            exit 1
+          fi
+          sleep 1
+          timeout=$((timeout-1))
+        done
+
+    - name: Run E2E tests
+      run: npm run test:e2e
+
+    - name: Install k6
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ca-certificates gnupg2
+        sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+        echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+        sudo apt-get update
+        sudo apt-get install -y k6
+
+    - name: Run Load tests
+      run: npm run test:load
+
+    - name: Post Set up Node.js
+      if: always()
+      run: echo "Node.js setup completed"
+
+    - name: Post Run actions/checkout@v3
+      if: always()
+      run: echo "Checkout completed"
+
+      # - name: Run Playwright tests
+      #   run: npx playwright test
+
+      # - name: Run k6 load test
+      #   run: |
+      #     sudo apt-get update && sudo apt-get install -y unzip
+      #     curl -s https://github.com/grafana/k6/releases/download/v0.46.0/k6-v0.46.0-linux-amd64.zip -L -o k6.zip
+      #     unzip k6.zip
+      #     ./k6 run tests/k6/bugs.js
