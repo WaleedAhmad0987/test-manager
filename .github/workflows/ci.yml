@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ main, initial-commit ]
+    branches: [ main, playwright-tests ]
   pull_request:
     branches: [ main ]
 
